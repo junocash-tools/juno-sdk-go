@@ -72,3 +72,24 @@ func TestDepositEvent_JSONRoundTrip(t *testing.T) {
 		t.Fatalf("round-trip mismatch:\n  in=%#v\n out=%#v", in, out)
 	}
 }
+
+func TestChainCursor_JSONRoundTrip(t *testing.T) {
+	in := types.ChainCursor{
+		Height: 123,
+		Hash:   "deadbeef",
+	}
+
+	b, err := json.Marshal(in)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	var out types.ChainCursor
+	if err := json.Unmarshal(b, &out); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+
+	if !reflect.DeepEqual(in, out) {
+		t.Fatalf("round-trip mismatch:\n  in=%#v\n out=%#v", in, out)
+	}
+}

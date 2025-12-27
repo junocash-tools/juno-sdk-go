@@ -13,3 +13,22 @@ type BlockchainInfo struct {
 	PruneHeight          int64   `json:"pruneheight,omitempty"`
 	SizeOnDisk           int64   `json:"size_on_disk,omitempty"`
 }
+
+type BlockHeader struct {
+	Hash              string `json:"hash"`
+	Confirmations     int64  `json:"confirmations,omitempty"`
+	Height            int64  `json:"height"`
+	Time              int64  `json:"time"`
+	PreviousBlockHash string `json:"previousblockhash,omitempty"`
+	NextBlockHash     string `json:"nextblockhash,omitempty"`
+}
+
+type BlockVerbose struct {
+	Hash              string   `json:"hash"`
+	Confirmations     int64    `json:"confirmations,omitempty"`
+	Height            int64    `json:"height"`
+	Time              int64    `json:"time"`
+	PreviousBlockHash string   `json:"previousblockhash,omitempty"`
+	NextBlockHash     string   `json:"nextblockhash,omitempty"`
+	Tx                []string `json:"tx"`
+}

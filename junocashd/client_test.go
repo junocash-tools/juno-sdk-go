@@ -86,3 +86,94 @@ func TestClient_Call_RPCErrorWinsOverHTTPStatus(t *testing.T) {
 		t.Fatalf("err=%q", err.Error())
 	}
 }
+
+func TestClient_GetBlockVerbose_Params(t *testing.T) {
+	t.Parallel()
+
+	type req struct {
+		Method string `json:"method"`
+		Params []any  `json:"params"`
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var got req
+		if err := json.NewDecoder(r.Body).Decode(&got); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		if got.Method != "getblock" {
+			t.Fatalf("method=%q", got.Method)
+		}
+		if len(got.Params) != 2 {
+			t.Fatalf("params=%v", got.Params)
+		}
+		if got.Params[0] != "hash" {
+			t.Fatalf("param0=%v", got.Params[0])
+		}
+		if got.Params[1] != float64(1) { // JSON numbers decode to float64
+			t.Fatalf("param1=%v", got.Params[1])
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"result": map[string]any{
+				"hash":   "hash",
+				"height": 1,
+				"time":   0,
+				"tx":     []string{},
+			},
+			"error": nil,
+			"id":    1,
+		})
+	}))
+	t.Cleanup(srv.Close)
+
+	cli := junocashd.New(srv.URL, "", "")
+	_, err := cli.GetBlockVerbose(context.Background(), "hash")
+	if err != nil {
+		t.Fatalf("GetBlockVerbose: %v", err)
+	}
+}
+
+func TestClient_GetBlockHeader_Params(t *testing.T) {
+	t.Parallel()
+
+	type req struct {
+		Method string `json:"method"`
+		Params []any  `json:"params"`
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var got req
+		if err := json.NewDecoder(r.Body).Decode(&got); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		if got.Method != "getblockheader" {
+			t.Fatalf("method=%q", got.Method)
+		}
+		if len(got.Params) != 2 {
+			t.Fatalf("params=%v", got.Params)
+		}
+		if got.Params[0] != "hash" {
+			t.Fatalf("param0=%v", got.Params[0])
+		}
+		if got.Params[1] != true {
+			t.Fatalf("param1=%v", got.Params[1])
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"result": map[string]any{
+				"hash":   "hash",
+				"height": 1,
+				"time":   0,
+			},
+			"error": nil,
+			"id":    1,
+		})
+	}))
+	t.Cleanup(srv.Close)
+
+	cli := junocashd.New(srv.URL, "", "")
+	_, err := cli.GetBlockHeader(context.Background(), "hash")
+	if err != nil {
+		t.Fatalf("GetBlockHeader: %v", err)
+	}
+}

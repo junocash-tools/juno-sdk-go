@@ -36,6 +36,22 @@ func (c *Client) GetBlockHash(ctx context.Context, height int64) (string, error)
 	return out, nil
 }
 
+func (c *Client) GetBlockHeader(ctx context.Context, blockHash string) (*BlockHeader, error) {
+	var out BlockHeader
+	if err := c.Call(ctx, "getblockheader", []any{blockHash, true}, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *Client) GetBlockVerbose(ctx context.Context, blockHash string) (*BlockVerbose, error) {
+	var out BlockVerbose
+	if err := c.Call(ctx, "getblock", []any{blockHash, 1}, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *Client) GetRawTransactionHex(ctx context.Context, txid string) (string, error) {
 	var out string
 	if err := c.Call(ctx, "getrawtransaction", []any{txid, 0}, &out); err != nil {
