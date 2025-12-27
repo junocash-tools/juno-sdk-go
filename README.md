@@ -20,3 +20,8 @@ Commands:
 - E2E tests (daemon + CLI): `make test-e2e`
 
 Set `JUNO_TEST_LOG=1` to show `junocashd` logs while running tests.
+
+## Packages
+
+- `junocashd`: typed JSON-RPC client helpers for `junocashd` (blocks, headers, tx broadcast)
+- `types`: shared payload types (TxPlan, DepositEvent, ChainCursor, stable error codes)
