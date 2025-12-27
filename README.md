@@ -19,7 +19,7 @@ Commands:
 - Integration tests (starts a local `junocashd -regtest`): `make test-integration`
 - E2E tests (daemon + CLI): `make test-e2e`
 
-Set `JUNO_TEST_LOG=1` to show `junocashd` logs while running tests.
+Set `JUNO_TEST_LOG=1` to show `junocashd` logs while running tests (it also enables `go test -v` via the Makefile).
 
 ## Packages
 
