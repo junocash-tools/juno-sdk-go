@@ -1,4 +1,4 @@
-.PHONY: test test-integration test-integration-docker test-e2e test-e2e-docker test-docker fmt tidy
+.PHONY: test test-unit test-integration test-integration-docker test-e2e test-e2e-docker test-docker fmt tidy
 
 TESTFLAGS ?=
 
@@ -6,8 +6,10 @@ ifneq ($(JUNO_TEST_LOG),)
 TESTFLAGS += -v
 endif
 
-test:
+test-unit:
 	go test $(TESTFLAGS) ./...
+
+test: test-unit test-integration test-e2e
 
 test-integration:
 	go test $(TESTFLAGS) -tags=integration ./...
