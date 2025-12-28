@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"os"
 	"os/exec"
 	"testing"
 	"time"
@@ -19,9 +19,10 @@ func TestJunocashdAndCLI_E2E(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	_, err := exec.LookPath("junocash-cli")
-	if err != nil {
-		t.Skip("junocash-cli not found in PATH")
+	if os.Getenv("JUNO_TEST_RPC_URL") == "" {
+		if _, err := exec.LookPath("junocash-cli"); err != nil {
+			t.Skip("junocash-cli not found in PATH")
+		}
 	}
 
 	r, err := testutil.StartJunocashd(ctx, testutil.JunocashdConfig{})
@@ -42,16 +43,7 @@ func TestJunocashdAndCLI_E2E(t *testing.T) {
 		t.Fatalf("chain=%q want regtest", info.Chain)
 	}
 
-	out, err := exec.CommandContext(
-		ctx,
-		"junocash-cli",
-		"-regtest",
-		"-datadir="+r.Datadir,
-		"-rpcuser="+r.RPCUser,
-		"-rpcpassword="+r.RPCPassword,
-		"-rpcport="+fmt.Sprint(r.RPCPort),
-		"getblockchaininfo",
-	).CombinedOutput()
+	out, err := r.CLICommand(ctx, "getblockchaininfo").CombinedOutput()
 	if err != nil {
 		t.Fatalf("junocash-cli getblockchaininfo: %v\n%s", err, string(out))
 	}

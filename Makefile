@@ -1,4 +1,4 @@
-.PHONY: test test-integration test-e2e fmt tidy
+.PHONY: test test-integration test-integration-docker test-e2e test-e2e-docker test-docker fmt tidy
 
 TESTFLAGS ?=
 
@@ -12,8 +12,16 @@ test:
 test-integration:
 	go test $(TESTFLAGS) -tags=integration ./...
 
+test-integration-docker:
+	go test $(TESTFLAGS) -tags=integration,docker ./...
+
 test-e2e:
 	go test $(TESTFLAGS) -tags=e2e ./...
+
+test-e2e-docker:
+	go test $(TESTFLAGS) -tags=e2e,docker ./...
+
+test-docker: test-integration-docker test-e2e-docker
 
 fmt:
 	gofmt -w .
