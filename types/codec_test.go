@@ -10,16 +10,32 @@ import (
 
 func TestTxPlan_JSONRoundTrip(t *testing.T) {
 	in := types.TxPlan{
-		Version:  types.V1,
-		Kind:     types.TxPlanKindSweep,
-		WalletID: "hot",
-		Inputs: []types.NoteRef{
-			{TxID: "deadbeef", ActionIndex: 7},
-		},
+		Version:      types.V0,
+		Kind:         types.TxPlanKindSweep,
+		WalletID:     "hot",
+		CoinType:     1337,
+		Account:      0,
+		Chain:        "regtest",
+		BranchID:     0x4dec4df0,
+		AnchorHeight: 123,
+		Anchor:       "deadbeef",
+		ExpiryHeight: 456,
 		Outputs: []types.TxOutput{
-			{ToAddress: "j1test", AmountZatoshis: 12345, MemoHex: "00"},
+			{ToAddress: "j1test", AmountZat: "12345", MemoHex: "00"},
 		},
-		FeeZatoshis: 1000,
+		ChangeAddress: "j1change",
+		FeeZat:        "1000",
+		Notes: []types.OrchardSpendNote{
+			{
+				NoteID:          "deadbeef:7",
+				ActionNullifier: "00",
+				CMX:             "00",
+				Position:        7,
+				Path:            make([]string, 32),
+				EphemeralKey:    "00",
+				EncCiphertext:   "00",
+			},
+		},
 		Metadata: map[string]any{
 			"reason": "test",
 		},

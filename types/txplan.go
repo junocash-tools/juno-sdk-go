@@ -8,23 +8,36 @@ const (
 	TxPlanKindRebalance  TxPlanKind = "rebalance"
 )
 
-type NoteRef struct {
-	TxID        string `json:"txid"`
-	ActionIndex uint32 `json:"action_index"`
+type TxOutput struct {
+	ToAddress string `json:"to_address"`
+	AmountZat string `json:"amount_zat"`
+	MemoHex   string `json:"memo_hex,omitempty"`
 }
 
-type TxOutput struct {
-	ToAddress      string `json:"to_address"`
-	AmountZatoshis uint64 `json:"amount_zatoshis"`
-	MemoHex        string `json:"memo_hex,omitempty"`
+type OrchardSpendNote struct {
+	NoteID          string   `json:"note_id,omitempty"`
+	ActionNullifier string   `json:"action_nullifier"`
+	CMX             string   `json:"cmx"`
+	Position        uint32   `json:"position"`
+	Path            []string `json:"path"`
+	EphemeralKey    string   `json:"ephemeral_key"`
+	EncCiphertext   string   `json:"enc_ciphertext"`
 }
 
 type TxPlan struct {
-	Version     Version    `json:"version"`
-	Kind        TxPlanKind `json:"kind"`
-	WalletID    string     `json:"wallet_id"`
-	Inputs      []NoteRef  `json:"inputs,omitempty"`
-	Outputs     []TxOutput `json:"outputs"`
-	FeeZatoshis uint64     `json:"fee_zatoshis"`
-	Metadata    any        `json:"metadata,omitempty"`
+	Version       Version            `json:"version"` // pinned TxPlan v0
+	Kind          TxPlanKind         `json:"kind"`
+	WalletID      string             `json:"wallet_id"`
+	CoinType      uint32             `json:"coin_type"`
+	Account       uint32             `json:"account"`
+	Chain         string             `json:"chain"`
+	BranchID      uint32             `json:"branch_id"`
+	AnchorHeight  uint32             `json:"anchor_height"`
+	Anchor        string             `json:"anchor"`
+	ExpiryHeight  uint32             `json:"expiry_height"`
+	Outputs       []TxOutput         `json:"outputs"`
+	ChangeAddress string             `json:"change_address"`
+	FeeZat        string             `json:"fee_zat"`
+	Notes         []OrchardSpendNote `json:"notes"`
+	Metadata      any                `json:"metadata,omitempty"`
 }
