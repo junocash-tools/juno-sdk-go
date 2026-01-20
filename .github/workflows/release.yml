@@ -32,7 +32,7 @@ jobs:
           set -euo pipefail
           tag="${{ github.ref_name }}"
 
-          if gh release view "$tag" >/dev/null 2>&1; then
+          if gh -R "${{ github.repository }}" release view "$tag" >/dev/null 2>&1; then
             exit 0
           fi
 
@@ -41,5 +41,4 @@ jobs:
             notes="Initial Version"
           fi
 
-          gh release create "$tag" --notes "$notes"
-
+          gh -R "${{ github.repository }}" release create "$tag" --notes "$notes"
