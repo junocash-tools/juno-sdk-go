@@ -1,0 +1,45 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run tests
+        run: go test ./...
+
+  create-release:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create GitHub release (if needed)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          tag="${{ github.ref_name }}"
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            exit 0
+          fi
+
+          notes="Release $tag"
+          if [ "$tag" = "v1.0" ]; then
+            notes="Initial Version"
+          fi
+
+          gh release create "$tag" --notes "$notes"
+
