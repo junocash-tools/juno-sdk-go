@@ -47,6 +47,18 @@ type WalletNote struct {
 	CreatedAt        time.Time  `json:"created_at"`
 }
 
+type WalletNotesPage struct {
+	Notes      []WalletNote `json:"notes"`
+	NextCursor string       `json:"next_cursor,omitempty"`
+}
+
+type ListWalletNotesOptions struct {
+	OnlyUnspent bool
+	MinValueZat int64
+	Limit       int
+	Cursor      string
+}
+
 type WitnessRequest struct {
 	AnchorHeight *int64   `json:"anchor_height,omitempty"`
 	Positions    []uint32 `json:"positions"`

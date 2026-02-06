@@ -152,3 +152,72 @@ func TestClient_HTTPErrorIncludesStatusCode(t *testing.T) {
 		t.Fatalf("status=%d", he.StatusCode)
 	}
 }
+
+func TestClient_ListWalletNotesPage(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/wallets/hot/notes", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		q := r.URL.Query()
+		if q.Get("spent") != "false" {
+			http.Error(w, "bad spent", http.StatusBadRequest)
+			return
+		}
+		if q.Get("limit") != "200" {
+			http.Error(w, "bad limit", http.StatusBadRequest)
+			return
+		}
+		if q.Get("min_value_zat") != "1234" {
+			http.Error(w, "bad min_value_zat", http.StatusBadRequest)
+			return
+		}
+		if q.Get("cursor") != "11:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:0" {
+			http.Error(w, "bad cursor", http.StatusBadRequest)
+			return
+		}
+
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"notes": []map[string]any{
+				{
+					"txid":              "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+					"action_index":      0,
+					"height":            12,
+					"value_zat":         5000,
+					"note_nullifier":    "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+					"recipient_address": "jtest1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqp4f3t7",
+					"created_at":        time.Unix(3, 0).UTC(),
+				},
+			},
+			"next_cursor": "12:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:0",
+		})
+	})
+
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	c, err := junoscan.New(srv.URL)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	page, err := c.ListWalletNotesPage(ctx, "hot", junoscan.ListWalletNotesOptions{
+		OnlyUnspent: true,
+		Limit:       200,
+		MinValueZat: 1234,
+		Cursor:      "11:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:0",
+	})
+	if err != nil {
+		t.Fatalf("ListWalletNotesPage: %v", err)
+	}
+	if len(page.Notes) != 1 {
+		t.Fatalf("notes=%d", len(page.Notes))
+	}
+	if page.NextCursor == "" {
+		t.Fatalf("expected next_cursor")
+	}
+}

@@ -121,23 +121,52 @@ func (c *Client) ListWalletEvents(ctx context.Context, walletID string, cursor i
 }
 
 func (c *Client) ListWalletNotes(ctx context.Context, walletID string, onlyUnspent bool) ([]WalletNote, error) {
+	page, err := c.ListWalletNotesPage(ctx, walletID, ListWalletNotesOptions{
+		OnlyUnspent: onlyUnspent,
+		Limit:       1000,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return page.Notes, nil
+}
+
+func (c *Client) ListWalletNotesPage(ctx context.Context, walletID string, opts ListWalletNotesOptions) (WalletNotesPage, error) {
 	walletID = strings.TrimSpace(walletID)
 	if walletID == "" {
-		return nil, errors.New("junoscan: wallet_id required")
+		return WalletNotesPage{}, errors.New("junoscan: wallet_id required")
 	}
 
 	spentParam := "false"
-	if !onlyUnspent {
+	if !opts.OnlyUnspent {
 		spentParam = "true"
 	}
-	path := fmt.Sprintf("/v1/wallets/%s/notes?spent=%s", url.PathEscape(walletID), spentParam)
-	var resp struct {
-		Notes []WalletNote `json:"notes"`
+
+	limit := opts.Limit
+	if limit <= 0 {
+		limit = 1000
 	}
+	if limit > 1000 {
+		limit = 1000
+	}
+
+	params := url.Values{}
+	params.Set("spent", spentParam)
+	params.Set("limit", fmt.Sprintf("%d", limit))
+	if opts.MinValueZat > 0 {
+		params.Set("min_value_zat", fmt.Sprintf("%d", opts.MinValueZat))
+	}
+	cursor := strings.TrimSpace(opts.Cursor)
+	if cursor != "" {
+		params.Set("cursor", cursor)
+	}
+
+	path := fmt.Sprintf("/v1/wallets/%s/notes?%s", url.PathEscape(walletID), params.Encode())
+	var resp WalletNotesPage
 	if err := c.doJSON(ctx, http.MethodGet, path, nil, &resp); err != nil {
-		return nil, err
+		return WalletNotesPage{}, err
 	}
-	return resp.Notes, nil
+	return resp, nil
 }
 
 func (c *Client) OrchardWitness(ctx context.Context, anchorHeight *int64, positions []uint32) (OrchardWitnessResponse, error) {
