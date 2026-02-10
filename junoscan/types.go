@@ -33,18 +33,19 @@ type WalletEventsPage struct {
 }
 
 type WalletNote struct {
-	TxID             string     `json:"txid"`
-	ActionIndex      int32      `json:"action_index"`
-	Height           int64      `json:"height"`
-	Position         *int64     `json:"position,omitempty"`
-	RecipientAddress string     `json:"recipient_address"`
-	ValueZat         int64      `json:"value_zat"`
-	NoteNullifier    string     `json:"note_nullifier"`
-	PendingSpentTxID *string    `json:"pending_spent_txid,omitempty"`
-	PendingSpentAt   *time.Time `json:"pending_spent_at,omitempty"`
-	SpentHeight      *int64     `json:"spent_height,omitempty"`
-	SpentTxID        *string    `json:"spent_txid,omitempty"`
-	CreatedAt        time.Time  `json:"created_at"`
+	TxID                     string     `json:"txid"`
+	ActionIndex              int32      `json:"action_index"`
+	Height                   int64      `json:"height"`
+	Position                 *int64     `json:"position,omitempty"`
+	RecipientAddress         string     `json:"recipient_address"`
+	ValueZat                 int64      `json:"value_zat"`
+	NoteNullifier            string     `json:"note_nullifier"`
+	PendingSpentTxID         *string    `json:"pending_spent_txid,omitempty"`
+	PendingSpentAt           *time.Time `json:"pending_spent_at,omitempty"`
+	PendingSpentExpiryHeight *int64     `json:"pending_spent_expiry_height,omitempty"`
+	SpentHeight              *int64     `json:"spent_height,omitempty"`
+	SpentTxID                *string    `json:"spent_txid,omitempty"`
+	CreatedAt                time.Time  `json:"created_at"`
 }
 
 type WalletNotesPage struct {
