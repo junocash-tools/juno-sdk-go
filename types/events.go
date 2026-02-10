@@ -6,6 +6,7 @@ const (
 	TxStateMempool   TxState = "mempool"
 	TxStateConfirmed TxState = "confirmed"
 	TxStateOrphaned  TxState = "orphaned"
+	TxStateExpired   TxState = "expired"
 )
 
 type TxStatus struct {
