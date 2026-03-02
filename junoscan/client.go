@@ -13,9 +13,15 @@ import (
 	"time"
 )
 
+const (
+	defaultHTTPTimeout              = 15 * time.Second
+	orchardWitnessHTTPTimeoutBudget = 65 * time.Second
+)
+
 type Client struct {
-	baseURL    string
-	httpClient *http.Client
+	baseURL                  string
+	httpClient               *http.Client
+	orchardWitnessHTTPClient *http.Client
 }
 
 type Option func(*Client)
@@ -40,13 +46,14 @@ func New(baseURL string, opts ...Option) (*Client, error) {
 
 	c := &Client{
 		baseURL:    strings.TrimRight(baseURL, "/"),
-		httpClient: &http.Client{Timeout: 15 * time.Second},
+		httpClient: &http.Client{Timeout: defaultHTTPTimeout},
 	}
 	for _, opt := range opts {
 		if opt != nil {
 			opt(c)
 		}
 	}
+	c.orchardWitnessHTTPClient = withMinimumTimeout(c.httpClient, orchardWitnessHTTPTimeoutBudget)
 	return c, nil
 }
 
@@ -178,15 +185,22 @@ func (c *Client) OrchardWitness(ctx context.Context, anchorHeight *int64, positi
 		Positions:    positions,
 	}
 	var resp OrchardWitnessResponse
-	if err := c.doJSON(ctx, http.MethodPost, "/v1/orchard/witness", req, &resp); err != nil {
+	if err := c.doJSONWithClient(ctx, c.orchardWitnessHTTPClient, http.MethodPost, "/v1/orchard/witness", req, &resp); err != nil {
 		return OrchardWitnessResponse{}, err
 	}
 	return resp, nil
 }
 
 func (c *Client) doJSON(ctx context.Context, method, path string, in any, out any) error {
+	return c.doJSONWithClient(ctx, c.httpClient, method, path, in, out)
+}
+
+func (c *Client) doJSONWithClient(ctx context.Context, hc *http.Client, method, path string, in any, out any) error {
 	if ctx == nil {
 		ctx = context.Background()
+	}
+	if hc == nil {
+		hc = http.DefaultClient
 	}
 
 	var body io.Reader
@@ -207,7 +221,7 @@ func (c *Client) doJSON(ctx context.Context, method, path string, in any, out an
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := hc.Do(req)
 	if err != nil {
 		return err
 	}
@@ -226,4 +240,16 @@ func (c *Client) doJSON(ctx context.Context, method, path string, in any, out an
 		return errors.New("junoscan: invalid json response")
 	}
 	return nil
+}
+
+func withMinimumTimeout(hc *http.Client, min time.Duration) *http.Client {
+	if hc == nil {
+		return &http.Client{Timeout: min}
+	}
+	if hc.Timeout == 0 || hc.Timeout >= min {
+		return hc
+	}
+	clone := *hc
+	clone.Timeout = min
+	return &clone
 }

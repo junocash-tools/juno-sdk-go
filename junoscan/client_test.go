@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -219,5 +220,63 @@ func TestClient_ListWalletNotesPage(t *testing.T) {
 	}
 	if page.NextCursor == "" {
 		t.Fatalf("expected next_cursor")
+	}
+}
+
+func TestClient_OrchardWitnessUsesExtendedTimeoutBudget(t *testing.T) {
+	const (
+		shortClientTimeout = 40 * time.Millisecond
+		serverDelay        = 120 * time.Millisecond
+	)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/health", func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(serverDelay)
+		_ = json.NewEncoder(w).Encode(map[string]any{"status": "ok"})
+	})
+	mux.HandleFunc("/v1/orchard/witness", func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(serverDelay)
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"status":        "ok",
+			"anchor_height": 123,
+			"root":          strings.Repeat("a", 64),
+			"paths": []map[string]any{
+				{
+					"position":  0,
+					"auth_path": []string{strings.Repeat("b", 64)},
+				},
+			},
+		})
+	})
+
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	c, err := junoscan.New(srv.URL, junoscan.WithHTTPClient(&http.Client{Timeout: shortClientTimeout}))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	if _, err := c.Health(ctx); err == nil {
+		t.Fatalf("Health: expected timeout")
+	} else {
+		var ne net.Error
+		if !errors.As(err, &ne) || !ne.Timeout() {
+			t.Fatalf("Health: expected timeout error, got %v", err)
+		}
+	}
+
+	got, err := c.OrchardWitness(ctx, nil, []uint32{0})
+	if err != nil {
+		t.Fatalf("OrchardWitness: %v", err)
+	}
+	if got.AnchorHeight != 123 {
+		t.Fatalf("anchor_height=%d", got.AnchorHeight)
+	}
+	if len(got.Paths) != 1 || got.Paths[0].Position != 0 {
+		t.Fatalf("unexpected witness paths: %#v", got.Paths)
 	}
 }
