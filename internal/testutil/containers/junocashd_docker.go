@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	defaultJunocashVersion = "0.9.8"
+	defaultJunocashVersion = "0.9.9"
 	defaultRPCUser         = "rpcuser"
 	defaultRPCPassword     = "rpcpass"
 )
