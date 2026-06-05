@@ -33,6 +33,7 @@ type WalletEventsPage struct {
 }
 
 type WalletNote struct {
+	Direction                string     `json:"direction,omitempty"`
 	TxID                     string     `json:"txid"`
 	ActionIndex              int32      `json:"action_index"`
 	Height                   int64      `json:"height"`
@@ -55,6 +56,7 @@ type WalletNotesPage struct {
 
 type ListWalletNotesOptions struct {
 	OnlyUnspent bool
+	Direction   string
 	MinValueZat int64
 	Limit       int
 	Cursor      string

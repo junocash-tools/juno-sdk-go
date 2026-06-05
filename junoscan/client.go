@@ -130,6 +130,7 @@ func (c *Client) ListWalletEvents(ctx context.Context, walletID string, cursor i
 func (c *Client) ListWalletNotes(ctx context.Context, walletID string, onlyUnspent bool) ([]WalletNote, error) {
 	page, err := c.ListWalletNotesPage(ctx, walletID, ListWalletNotesOptions{
 		OnlyUnspent: onlyUnspent,
+		Direction:   "incoming",
 		Limit:       1000,
 	})
 	if err != nil {
@@ -160,6 +161,9 @@ func (c *Client) ListWalletNotesPage(ctx context.Context, walletID string, opts 
 	params := url.Values{}
 	params.Set("spent", spentParam)
 	params.Set("limit", fmt.Sprintf("%d", limit))
+	if direction := strings.TrimSpace(opts.Direction); direction != "" {
+		params.Set("direction", direction)
+	}
 	if opts.MinValueZat > 0 {
 		params.Set("min_value_zat", fmt.Sprintf("%d", opts.MinValueZat))
 	}

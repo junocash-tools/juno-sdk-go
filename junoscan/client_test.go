@@ -170,6 +170,10 @@ func TestClient_ListWalletNotesPage(t *testing.T) {
 			http.Error(w, "bad limit", http.StatusBadRequest)
 			return
 		}
+		if q.Get("direction") != "incoming" {
+			http.Error(w, "bad direction", http.StatusBadRequest)
+			return
+		}
 		if q.Get("min_value_zat") != "1234" {
 			http.Error(w, "bad min_value_zat", http.StatusBadRequest)
 			return
@@ -208,6 +212,7 @@ func TestClient_ListWalletNotesPage(t *testing.T) {
 
 	page, err := c.ListWalletNotesPage(ctx, "hot", junoscan.ListWalletNotesOptions{
 		OnlyUnspent: true,
+		Direction:   "incoming",
 		Limit:       200,
 		MinValueZat: 1234,
 		Cursor:      "11:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:0",
